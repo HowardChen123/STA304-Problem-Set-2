@@ -1,0 +1,191 @@
+---
+title: "Title of Your Report"
+author: "Names of your Group Members"
+date: "Due Date"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Title of your Report
+
+# Name(s) of Author(s) 
+# Date
+
+## Abstract
+
+Here is where you give a brief (one paragraph overview of your entire paper). This should include some background/introduction, some methodology, results and conclusions.
+
+## Introduction
+
+Here is where you should give insight into the setting and introduce the goal of the analysis. Here you can introduce ideas and basic concepts regarding the study setting and the potential model. Again, this is the introduction, so you should be explaining the importance of the work that is ahead and hopefully build some suspense for the reader. You can also highlight what will be included in the subsequent sections.
+
+## Data
+
+Introduce the data, explain why it was selected. Make sure to comment on important features and highlight any potential drawbacks to the data.
+
+### Data Cleaning
+```{r}
+library(tidyverse)
+gss_df <- read.csv("gss.csv")
+```
+```{r}
+gss_df <- gss_df %>%
+  filter(marital_status %in% c("Married", "Living common-Law"))
+gss_df <- gss_df %>% 
+  mutate(hasSameEducation = education == partner_education)
+gss_df <- gss_df[!is.na(gss_df$hasSameEducation), ]
+```
+
+```{r}
+final_data <- gss_df %>%
+                select(caseid, hasSameEducation, age_first_child, total_children, 
+                       feelings_life, place_birth_canada, province, education, 
+                       hh_type, partner_birth_province, average_hours_worked, 
+                       self_rated_health, self_rated_mental_health, income_family, 
+                       income_respondent)
+final_data <- na.omit(final_data)
+```
+
+### Split Data
+```{r}
+set.seed(1005107457)
+test_id = sample(final_data$caseid, nrow(final_data)/2)
+train_df = final_data[!final_data$caseid %in% test_id, ]
+test_df = final_data[final_data$caseid %in% test_id, ]
+```
+
+## Model
+
+Introduce the selected model here. It is expected that you will use some mathematical notation here. If you do please ensure that all notation is explained. You may also want to discuss any special (hypothetical) cases of your model here, as well as any caveats.  
+
+### Base Model
+```{r}
+base_model = glm(hasSameEducation ~ age_first_child+as.factor(total_children)+
+                  as.factor(feelings_life)+as.factor(place_birth_canada)+
+                   as.factor(province)+as.factor(education)+as.factor(hh_type)+
+                   as.factor(partner_birth_province)+as.factor(average_hours_worked)+
+                   as.factor(self_rated_health)+as.factor(self_rated_mental_health)+
+                   as.factor(income_family)+as.factor(income_respondent), 
+                 family = binomial, data = train_df)
+```
+
+### Variable Selection and Regularization
+```{r}
+## AIC ##
+step(base_model,
+     direction = c("forward"), trace = 0, k = 2)
+step(base_model,
+     direction = c("backward"), trace = 0, k = 2)
+## BIC ##
+step(base_model,
+     direction = c("forward"), trace = 0, k = log(nrow(train_df)))
+step(base_model,
+     direction = c("backward"), trace = 0, k = log(nrow(train_df)))
+```
+
+### Forward stepwise AIC/BIC Model
+```{r}
+forward_aic <- glm(formula = hasSameEducation ~ age_first_child + as.factor(total_children) + 
+    as.factor(feelings_life) + as.factor(place_birth_canada) + 
+    as.factor(province) + as.factor(education) + as.factor(hh_type) + 
+    as.factor(partner_birth_province) + as.factor(average_hours_worked) + 
+    as.factor(self_rated_health) + as.factor(self_rated_mental_health) + 
+    as.factor(income_family) + as.factor(income_respondent), 
+    family = binomial, data = train_df)
+```
+
+### Backward stepwise AIC Model
+```{r}
+backward_aic <- glm(formula = hasSameEducation ~ as.factor(feelings_life) + as.factor(place_birth_canada) + 
+    as.factor(education) + as.factor(self_rated_mental_health), 
+    family = binomial, data = train_df)
+```
+
+### Backward stepwise BIC Model
+```{r}
+backward_bic <- glm(formula = hasSameEducation ~ as.factor(education), family = binomial, 
+    data = train_df)
+```
+
+### LRT
+```{r}
+library(epiDisplay)
+lrtest(forward_aic, backward_aic)
+lrtest(backward_bic, backward_aic)
+```
+
+### Validation
+```{r, message=FALSE}
+library(pROC)
+library(ROCR)
+calculate_roc <- function(model, data){
+  p <- predict(model, type = "response")
+  roc_logit <- roc(data$hasSameEducation ~ p)
+  ## The True Positive Rate ##
+  TPR <- roc_logit$sensitivities
+  ## The False Positive Rate ##
+  FPR <- 1 - roc_logit$specificities
+  plot(FPR, TPR, xlim = c(0,1), ylim = c(0,1), type = 'l', lty = 1, lwd = 2,col = 'red')
+  abline(a = 0, b = 1, lty = 2, col = 'blue')
+  text(0.7,0.4,label = paste("AUC = ", round(auc(roc_logit),2)))
+  print(paste("AUC: ",auc(roc_logit)))
+}
+```
+
+```{r}
+test_model <- glm(formula = hasSameEducation ~ as.factor(feelings_life) + as.factor(place_birth_canada) + as.factor(education) + as.factor(self_rated_mental_health), 
+    family = binomial, data = test_df)
+```
+
+```{r}
+calculate_roc(test_model, test_df)
+```
+
+### Influential Points
+```{r}
+HighLeverage <- cooks.distance(test_model) > (4/nrow(test_df))
+LargeResiduals <- rstudent(test_model) > 3
+test_df_removed <- test_df[!HighLeverage & !LargeResiduals,]
+updated_model <- glm(hasSameEducation ~ as.factor(feelings_life) + as.factor(place_birth_canada) + 
+      as.factor(education) + as.factor(self_rated_mental_health), family = binomial, data = test_df_removed)
+```
+
+```{r}
+calculate_roc(updated_model, test_df_removed)
+```
+```{r}
+summary(updated_model)
+```
+
+### Diagnostics
+```{r}
+library(boot)
+glm.diag.plots(updated_model)
+```
+
+## Results
+
+Here you will include all results. This includes descriptive statistics, graphs, figures, tables, and model results. Please ensure that everything is well formatted and in a report style. You must also provide an explanation of the results in this section. You can overflow to an Appendix if needed. 
+
+Please ensure that everything is well labelled. So if you have multiple histograms and plots, calling them Figure 1, 2, 3, etc. and referencing them as Figure 1, Figure 2, etc. in your report will be expected. The reader should not get lost in a sea of information. Make sure to have the results be clean, well formatted and digestible.
+
+## Discussion
+
+Here you will discuss conclusions drawn from the results and comment on how it relates to the original goal of the study (which was specified in the Introduction).
+
+# Weaknesses
+
+Here we discuss weaknesses of the study, data, analysis, etc. You can also discuss areas for improvement.
+
+# Next Steps
+
+Here you discuss subsequent work to be done after this report. This can include next steps in terms of statistical analysis (perhaps there is a more efficient algorithm available, or perhaps there is a caveat in the data that would allow for some new technique). Future steps should also be specified in terms of the study setting (eg. including a follow-up survey on something, or a subsequent study that would complement the conclusions of your report).
+
+
+## References
+
+
+
