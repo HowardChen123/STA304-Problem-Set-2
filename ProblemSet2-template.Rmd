@@ -49,7 +49,6 @@ final_data <- gss_df %>%
 final_data <- na.omit(final_data)
 ```
 
-### Split Data
 ```{r}
 set.seed(1005107457)
 test_id = sample(final_data$caseid, nrow(final_data)/2)
@@ -57,12 +56,14 @@ train_df = final_data[!final_data$caseid %in% test_id, ]
 test_df = final_data[final_data$caseid %in% test_id, ]
 ```
 
+Our final dataset contains 5100 observations and each of them contains characteristics of modern Canadian household. Data is splitted into a training set and a testing set where each of them contains 50% (randomly sampled) of the original data. 
+
 ## Model
 
-Introduce the selected model here. It is expected that you will use some mathematical notation here. If you do please ensure that all notation is explained. You may also want to discuss any special (hypothetical) cases of your model here, as well as any caveats.  
+Logistic regression was chosen to fit the relationship between various Canadian household features and our target: whether or not the partners have the same education level. The model was chosen because the target variable is binary, and the logit link is appropriate for a target variable that follows a binomial distribution.
 
 ### Base Model
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 base_model = glm(hasSameEducation ~ age_first_child+as.factor(total_children)+
                   as.factor(feelings_life)+as.factor(place_birth_canada)+
                    as.factor(province)+as.factor(education)+as.factor(hh_type)+
@@ -72,8 +73,10 @@ base_model = glm(hasSameEducation ~ age_first_child+as.factor(total_children)+
                  family = binomial, data = train_df)
 ```
 
-### Variable Selection and Regularization
-```{r}
+We begin by building a base model that includes all the predictors. There are a lot of insignificant predictors and hence, we intended to perform variable selection to explain the variability with a simpler model. 
+
+### Variable Selection
+```{r, echo=FALSE, warning=FALSE}
 ## AIC ##
 step(base_model,
      direction = c("forward"), trace = 0, k = 2)
@@ -85,9 +88,7 @@ step(base_model,
 step(base_model,
      direction = c("backward"), trace = 0, k = log(nrow(train_df)))
 ```
-
-### Forward stepwise AIC/BIC Model
-```{r}
+```{r, echo=FALSE, warning=FALSE}
 forward_aic <- glm(formula = hasSameEducation ~ age_first_child + as.factor(total_children) + 
     as.factor(feelings_life) + as.factor(place_birth_canada) + 
     as.factor(province) + as.factor(education) + as.factor(hh_type) + 
@@ -97,28 +98,20 @@ forward_aic <- glm(formula = hasSameEducation ~ age_first_child + as.factor(tota
     family = binomial, data = train_df)
 ```
 
-### Backward stepwise AIC Model
-```{r}
+```{r, echo=FALSE, warning=FALSE}
 backward_aic <- glm(formula = hasSameEducation ~ as.factor(feelings_life) + as.factor(place_birth_canada) + 
     as.factor(education) + as.factor(self_rated_mental_health), 
     family = binomial, data = train_df)
 ```
 
-### Backward stepwise BIC Model
-```{r}
+```{r, echo=FALSE, warning=FALSE}
 backward_bic <- glm(formula = hasSameEducation ~ as.factor(education), family = binomial, 
     data = train_df)
 ```
 
-### LRT
-```{r}
-library(epiDisplay)
-lrtest(forward_aic, backward_aic)
-lrtest(backward_bic, backward_aic)
-```
+We performed variable selection through forward and backward AIC/BIC selection. Note that we have obtained the same model through the forward stepwise AIC method and the forward stepwise BIC method. To decide which model has a better fit, we performed the likelihood ratio test (forward stepwise AIC model as base model) and measured their prediction power through AUC value. We concluded that the backward stepwise AIC model performs the best in terms of Goodness of Fit and it is simple enough to provide good predictions.
 
-### Validation
-```{r, message=FALSE}
+```{r, message=FALSE, echo=FALSE}
 library(pROC)
 library(ROCR)
 calculate_roc <- function(model, data){
@@ -135,17 +128,42 @@ calculate_roc <- function(model, data){
 }
 ```
 
+```{r, echo=FALSE, message=FALSE, results='hide'}
+library(epiDisplay)
+lrtest(forward_aic, backward_aic)
+lrtest(backward_bic, backward_aic)
+```
+
 ```{r}
+library(pander)
+candidate_comparison <- data.frame("Candidate Model" = c("Forward Stepwise AIC", "Backward Stepwise AIC", "Backward Stepwise BIC"), "Number of Predictors" = c("13", "4", "1"), "Likelihood Ratio Test" = c("1", "0.1690", "0.0028"), "AUC" = c("0.91", "0.90", "0.88"))
+set.alignment('centre')
+pander(candidate_comparison, split.table=Inf, split.cells = c(2,1,30,45), style="multiline")
+```
+
+### Validation
+
+We validated our model through its prediction accuracy in the test set. We observed that our model has an AUC value of 0.89, which is close to its AUC value with the training set (0.9). Therefore, our model generalizes well and provides good predictions.
+
+```{r, warning=FALSE, echo=FALSE}
 test_model <- glm(formula = hasSameEducation ~ as.factor(feelings_life) + as.factor(place_birth_canada) + as.factor(education) + as.factor(self_rated_mental_health), 
     family = binomial, data = test_df)
 ```
 
-```{r}
+```{r, echo=FALSE}
 calculate_roc(test_model, test_df)
 ```
 
 ### Influential Points
+
+We identified influential points through Cook's Distance to assess observations' influence over the model fit. We observed that there are two observations that have significant effect on the model fit, hence we removed them and validate the model again. We observe that the model performs significantly better after removing the influential points. 
+
 ```{r}
+library(car)
+plot(cooks.distance(test_model))
+```
+
+```{r, warning=FALSE, echo=FALSE}
 HighLeverage <- cooks.distance(test_model) > (4/nrow(test_df))
 LargeResiduals <- rstudent(test_model) > 3
 test_df_removed <- test_df[!HighLeverage & !LargeResiduals,]
@@ -156,17 +174,28 @@ updated_model <- glm(hasSameEducation ~ as.factor(feelings_life) + as.factor(pla
 ```{r}
 calculate_roc(updated_model, test_df_removed)
 ```
-```{r}
-summary(updated_model)
-```
 
 ### Diagnostics
+
+In this section, we will verify the model assumptions. 
+
 ```{r}
-library(boot)
-glm.diag.plots(updated_model)
+library(arm)
+binnedplot(fitted(updated_model), 
+           residuals(updated_model, type = "response"), 
+           nclass = NULL, 
+           xlab = "Expected Fitted Values", 
+           ylab = "Average residual",
+           cex.pts = 0.8, 
+           col.pts = 1, 
+           col.int = "gray")
 ```
 
 ## Results
+
+```{r, echo=FALSE}
+summary(updated_model)
+```
 
 Here you will include all results. This includes descriptive statistics, graphs, figures, tables, and model results. Please ensure that everything is well formatted and in a report style. You must also provide an explanation of the results in this section. You can overflow to an Appendix if needed. 
 
