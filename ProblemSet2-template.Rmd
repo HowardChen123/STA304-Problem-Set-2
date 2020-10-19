@@ -137,7 +137,7 @@ backward_bic <- glm(formula = hasSameEducation ~ as.factor(education), family = 
 
 We performed variable selection through forward and backward AIC/BIC selection. Note that we have obtained the same model through the forward stepwise AIC method and the forward stepwise BIC method. To decide which model has a better fit, we performed the likelihood ratio test (forward stepwise AIC model as base model) and measured their prediction power through AUC value. We concluded that the backward stepwise AIC model performs the best in terms of Goodness of Fit and it is simple enough to provide good predictions.
 
-```{r, message=FALSE, echo=FALSE}
+```{r, message=FALSE, echo=FALSE, warning=FALSE}
 library(pROC)
 library(ROCR)
 calculate_roc <- function(model, data){
@@ -154,7 +154,8 @@ calculate_roc <- function(model, data){
 }
 ```
 
-```{r, echo=FALSE, message=FALSE, results='hide'}
+```{r, echo=FALSE, message=FALSE, results='hide', warning=FALSE
+}
 library(epiDisplay)
 lrtest(forward_aic, backward_aic)
 lrtest(backward_bic, backward_aic)
@@ -249,4 +250,21 @@ Here you discuss subsequent work to be done after this report. This can include 
 6. Gergely Daróczi and Roman Tsegelskyi (2018). pander: An R
   'Pandoc' Writer. R package version 0.6.3.
   http://rapporter.github.io/pander 
-
+7. Wickham et al., (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686,
+  https://doi.org/10.21105/joss.01686
+8. Xavier Robin, Natacha Turck, Alexandre Hainard, Natalia Tiberti, Frédérique Lisacek, Jean-Charles Sanchez and Markus
+  Müller (2011). pROC: an open-source package for R and S+ to analyze and compare ROC curves. BMC Bioinformatics, 12, p.
+  77.  DOI: 10.1186/1471-2105-12-77 <http://www.biomedcentral.com/1471-2105/12/77/>
+9. Sing T, Sander O, Beerenwinkel N, Lengauer T (2005). “ROCR: visualizing classifier performance in R.” _Bioinformatics_,
+*21*(20), 7881. <URL: http://rocr.bioinf.mpi-sb.mpg.de>.
+10. John Fox and Sanford Weisberg (2019). An {R} Companion to Applied Regression, Third Edition. Thousand Oaks CA: Sage.
+  URL: https://socialsciences.mcmaster.ca/jfox/Books/Companion/
+11. Andrew Gelman and Yu-Sung Su (2020). arm: Data Analysis Using Regression and
+  Multilevel/Hierarchical Models. R package version 1.11-2.
+  https://CRAN.R-project.org/package=arm
+12. R Core Team (2020). R: A language and environment for statistical
+  computing. R Foundation for Statistical Computing, Vienna, Austria. URL
+  https://www.R-project.org/.
+13. Virasakdi Chongsuvivatwong (2018). epiDisplay: Epidemiological Data Display Package. R package
+  version 3.5.0.1. https://CRAN.R-project.org/package=epiDisplay
+14. Statistics Canada, 2020. Public Use Microdata File Documentation And User’S Guide. Cycle 31 : Families. [online] pp.1-23. Available at: <https://sda-artsci-utoronto-ca.myaccess.library.utoronto.ca/sdaweb/dli2/gss/gss31/gss31/more_doc/index.htm> [Accessed 19 October 2020].
