@@ -14,24 +14,49 @@ knitr::opts_chunk$set(echo = FALSE)
 # Name(s) of Author(s) 
 # Date
 
-## Abstract
+## **1. Abstract**
 
 Here is where you give a brief (one paragraph overview of your entire paper). This should include some background/introduction, some methodology, results and conclusions.
 
-## Introduction
+## **2. Introduction**
 
-Here is where you should give insight into the setting and introduce the goal of the analysis. Here you can introduce ideas and basic concepts regarding the study setting and the potential model. Again, this is the introduction, so you should be explaining the importance of the work that is ahead and hopefully build some suspense for the reader. You can also highlight what will be included in the subsequent sections.
+The General Social Survey - Family 2017 (GSS-Cycle 31) is a sample survey began on February 2nd and completed on November 30th in 2017.  The program aims to capture social trends and provide data on current social issues. The survey mainly explores some characteristics of the modern Canadian family and how diverse they are. It collects a large amount of information for the selected respondents and some data about the family members of the respondents from the ten provinces in Canada. 
 
-## Data
+### *Research Inspiration*
 
-Introduce the data, explain why it was selected. Make sure to comment on important features and highlight any potential drawbacks to the data.
+The novel “The Meritocracy Trap” by Daniel Markovits crystallizes the problem, phenomenon, 	and representations of the American meritocracy. In the 1960s, the American economy was operated by lands, capital, machines, and manpower. However, in today’s society, the one and only one valuable resource is the brain of the elites, and families become the new “factory” who are responsible to output the most valuable resource in this era. One of the consequences of this phenomena is that marriage across different education levels becomes less and less under meritocracy. Parents in a household who have receive a college education are more likely to provide kids a stabilized family relationship and better education in the long run. In 2010, 25% of the newlyweds both had at least a college diploma. 
 
-### Data Cleaning
-```{r}
+### *Research objective*
+
+Given a wide set of features of the modern Canadian family, we want to investigate the characteristics that come along with households where parents have the same education and households where parents have a different education. We will be developing an accurate predictive logistic regression for parents with the same education to explore characteristics of such households. We can, therefore, identify the household formation under meritocracy in Canadian society. 
+
+## **3. Data**
+
+The data is collected through a survey, and its target population, sampling frame and the sampling techniques are explained below. Its target population contains all persons over the age of 15 in Canada, to the exclusion of the residents of the Yukon, Northwest Territories and Nunavut, and full-time institutional residents. The survey frame was created based on the telephone numbers accessible to Statistics Canada obtained from multiple sources, and The Address Register (AR), which is designed for connecting all telephone numbers with the address associated with them. The combination of the two methods is to guarantee that all households are covered with telephone numbers. The households which do not possess telephones are excluded from the survey population. The ten provinces were separated into strata for stratified random sampling. There are 27 strata in total. Every sampling unit was allotted to a stratum.  A simple random sampling without replacement of the sampling units was performed to randomly pick households for interview. A respondent was randomly selected from the selected households. There were 20,602 respondents for the 2017 survey.
+
+### *Features and Selected Variables*
+
+The table below lists all selected predictors that are considered affecting the result of this observation. It could be found that the original dataset involves a bunch of categorical variables. Thus, in general, nearly all of those variables are categorical variables indicating specific groups of respondents, except the numerical variable illustrating the age of respondent's first kid. In advance, since 13 variables, out of 81 of those, are chosen to indicate the relationship between our response variable and each of those predictors, the processing of creating a reduced model would be easier and the result might be more accurate than working on a full model. However, it can be a weakness that too many categorical variables restrict the interpretation of data generated from the model, and might not be able to distinguish degrees of response.
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+install.packages("pander")
+library(pander)
+data <- data.frame("VARIABLE NAME" = c("has_same_education", "age_first_child", "total_children", "feelings_life", "place_birth _canada", "province", "education", "hh_type", "partner_birth _province", "average_hours _worked", "self_rated _health", "self_rated _mental_health", "income_family", "income_respondent"),
+           "TYPE" = c("categorical", "Numerical", "Categorical", "Categorical", "Categorical", "Categorical", "Categorical", "Categorical", "Categorical", "Categorical", "Categorical", "Categorical", "Categorical", "Categorical"),
+           "CHARACTERISTIC" = c("whether the partners have the same education", "Age of the first kid", "Number of children", "Rate of feelings about life", "Originally born in Canada", "Regional location of province", "Education background", "Household type", "Partner's regional birth (province)", "Average weekly work time in hours", "Health level rated by self", "Mental health level rated by self", "Family income level", "Respondent income level" ),
+          "DETAILED CATEGORIES" = c("True, False", "Numeric values among 0 and 60  ", "Integers among 0 and 7  ", "Integers among 0 and 10  ", "Born in Canada, Born outside canada, NA, Don't Know", "Quebec, Manitoca, Ontario, Alberta, Nova Scotia, British Columbia, Saskatchewan, Prince Edward Island, New Brunswick, Newfoundland and Labrador", "High school diploma or a high school equivalency certificate, Trade certificate or diploma, Bachelor's degree (e.g. B.A., B.Sc., LL.B.), College, CEGEP or other non-university certificate or diploma, Less than high school diploma or its equivalent, University certificate or diploma below the bachelor's level, University certificate, diploma or degree above the bachelor, NA", "Low-rise apartment (less than 5 stories), Single detached house, Other, High-rise apartment (5 or more stories), Don't know", "Quebec, Manitoca, Ontario, Alberta, Nova Scotia, British Columbia, Saskatchewan, Prince Edward Island, New Brunswick, Newfoundland and Labrador, Yukon / Northwest Territories / Nunavut", "30.0 to 40.0 hours, 50.1 hours and more, NA, 0.1 to 29.9 hours, Don't know, 40.1 to 50.0 hours, 0 hour", "Excellent, Good, Very good, Poor, Fair, Don't know, NA", "Excellent, Good, Very good, Poor, Fair, Don't know, NA", "$25,000 to $49,999, $75,000 to $99,999, $100,000 to $ 124,999, $50,000 to $74,999, Less than $25,000, $125,000 and more", "$25,000 to $49,999, Less than $25,000, $50,000 to $74,999, $125,000 and more, $75,000 to $99,999, $100,000 to $ 124,999"))
+
+set.alignment('left')
+pander(data, split.table=Inf, split.cells = c(2,1,30,45), style="multiline", caption = "List of Selected Variables and Descriptions")
+```
+
+
+### *Data Cleaning*
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 library(tidyverse)
 gss_df <- read.csv("gss.csv")
 ```
-```{r}
+
+```{r, echo=FALSE, warning=FALSE}
 gss_df <- gss_df %>%
   filter(marital_status %in% c("Married", "Living common-Law"))
 gss_df <- gss_df %>% 
@@ -39,7 +64,7 @@ gss_df <- gss_df %>%
 gss_df <- gss_df[!is.na(gss_df$hasSameEducation), ]
 ```
 
-```{r}
+```{r, echo=FALSE, warning=FALSE}
 final_data <- gss_df %>%
                 select(caseid, hasSameEducation, age_first_child, total_children, 
                        feelings_life, place_birth_canada, province, education, 
@@ -49,7 +74,7 @@ final_data <- gss_df %>%
 final_data <- na.omit(final_data)
 ```
 
-```{r}
+```{r, echo=FALSE, warning=FALSE}
 set.seed(1005107457)
 test_id = sample(final_data$caseid, nrow(final_data)/2)
 train_df = final_data[!final_data$caseid %in% test_id, ]
@@ -58,11 +83,11 @@ test_df = final_data[final_data$caseid %in% test_id, ]
 
 Our final dataset contains 5100 observations and each of them contains characteristics of modern Canadian household. Data is splitted into a training set and a testing set where each of them contains 50% (randomly sampled) of the original data. 
 
-## Model
+## **4. Model**
 
 Logistic regression was chosen to fit the relationship between various Canadian household features and our target: whether or not the partners have the same education level. The model was chosen because the target variable is binary, and the logit link is appropriate for a target variable that follows a binomial distribution.
 
-### Base Model
+### *Base Model*
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 base_model = glm(hasSameEducation ~ age_first_child+as.factor(total_children)+
                   as.factor(feelings_life)+as.factor(place_birth_canada)+
@@ -75,7 +100,7 @@ base_model = glm(hasSameEducation ~ age_first_child+as.factor(total_children)+
 
 We begin by building a base model that includes all the predictors. There are a lot of insignificant predictors and hence, we intended to perform variable selection to explain the variability with a simpler model. 
 
-### Variable Selection
+### *Variable Selection*
 ```{r, echo=FALSE, warning=FALSE}
 ## AIC ##
 step(base_model,
@@ -88,6 +113,7 @@ step(base_model,
 step(base_model,
      direction = c("backward"), trace = 0, k = log(nrow(train_df)))
 ```
+
 ```{r, echo=FALSE, warning=FALSE}
 forward_aic <- glm(formula = hasSameEducation ~ age_first_child + as.factor(total_children) + 
     as.factor(feelings_life) + as.factor(place_birth_canada) + 
@@ -134,14 +160,14 @@ lrtest(forward_aic, backward_aic)
 lrtest(backward_bic, backward_aic)
 ```
 
-```{r}
+```{r, echo=FALSE, warning=FALSE}
 library(pander)
 candidate_comparison <- data.frame("Candidate Model" = c("Forward Stepwise AIC", "Backward Stepwise AIC", "Backward Stepwise BIC"), "Number of Predictors" = c("13", "4", "1"), "Likelihood Ratio Test" = c("1", "0.1690", "0.0028"), "AUC" = c("0.91", "0.90", "0.88"))
 set.alignment('centre')
 pander(candidate_comparison, split.table=Inf, split.cells = c(2,1,30,45), style="multiline")
 ```
 
-### Validation
+### *Validation*
 
 We validated our model through its prediction accuracy in the test set. We observed that our model has an AUC value of 0.89, which is close to its AUC value with the training set (0.9). Therefore, our model generalizes well and provides good predictions.
 
@@ -154,11 +180,11 @@ test_model <- glm(formula = hasSameEducation ~ as.factor(feelings_life) + as.fac
 calculate_roc(test_model, test_df)
 ```
 
-### Influential Points
+### *Influential Points*
 
 We identified influential points through Cook's Distance to assess observations' influence over the model fit. We observed that there are two observations that have significant effect on the model fit, hence we removed them and validate the model again. We observe that the model performs significantly better after removing the influential points. 
 
-```{r}
+```{r, echo=FALSE, message=FALSE}
 library(car)
 plot(cooks.distance(test_model))
 ```
@@ -171,15 +197,15 @@ updated_model <- glm(hasSameEducation ~ as.factor(feelings_life) + as.factor(pla
       as.factor(education) + as.factor(self_rated_mental_health), family = binomial, data = test_df_removed)
 ```
 
-```{r}
+```{r, echo=FALSE, warning=FALSE}
 calculate_roc(updated_model, test_df_removed)
 ```
 
-### Diagnostics
+### *Diagnostics*
 
 In this section, we will verify the model assumptions. 
 
-```{r}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 library(arm)
 binnedplot(fitted(updated_model), 
            residuals(updated_model, type = "response"), 
@@ -191,7 +217,7 @@ binnedplot(fitted(updated_model),
            col.int = "gray")
 ```
 
-## Results
+## **5. Results**
 
 ```{r, echo=FALSE}
 summary(updated_model)
@@ -199,22 +225,28 @@ summary(updated_model)
 
 Here you will include all results. This includes descriptive statistics, graphs, figures, tables, and model results. Please ensure that everything is well formatted and in a report style. You must also provide an explanation of the results in this section. You can overflow to an Appendix if needed. 
 
-Please ensure that everything is well labelled. So if you have multiple histograms and plots, calling them Figure 1, 2, 3, etc. and referencing them as Figure 1, Figure 2, etc. in your report will be expected. The reader should not get lost in a sea of information. Make sure to have the results be clean, well formatted and digestible.
+Please ensure that everything is well labeled. So if you have multiple histograms and plots, calling them Figure 1, 2, 3, etc. and referencing them as Figure 1, Figure 2, etc. in your report will be expected. The reader should not get lost in a sea of information. Make sure to have the results be clean, well formatted and digestible.
 
-## Discussion
+## **6. Discussion**
 
-Here you will discuss conclusions drawn from the results and comment on how it relates to the original goal of the study (which was specified in the Introduction).
+Addressing general social survey, questionnaire is one of the ways to collect data from every potential target population. Since the online self-completed questionnaire is purposed to indicate some basic personal information and household information, and the other income data are collected through some administrative files, the questions in the questionnaire could be more reliable that reduce the burden and improve accuracy of data. Furthermore, the questionnaire increases initiative while it is an easy way to collect every respondents' data. On the other hand, due to some situations that there could be some respondents not able to complete the questionnaire, the response rate of the questionnaire might never be hundred-percent fulfilled as expected. Equivalently, the result interpreted from the data might not represent the Canadian residents' information accurately, because not all of the target population are included in the dataset. In terms of this questionnaire of general social survey, some questions are ambiguous to answer for some special groups and there are some categories that are not representative of some respondents' situations. According to the overview of the general social survey report in 2017, the questions are not mandatory to respond to, which leads to many NA entries in the data set.
 
-# Weaknesses
+## **7. Weaknesses**
 
 Here we discuss weaknesses of the study, data, analysis, etc. You can also discuss areas for improvement.
 
-# Next Steps
+## **8. Next Steps**
 
 Here you discuss subsequent work to be done after this report. This can include next steps in terms of statistical analysis (perhaps there is a more efficient algorithm available, or perhaps there is a caveat in the data that would allow for some new technique). Future steps should also be specified in terms of the study setting (eg. including a follow-up survey on something, or a subsequent study that would complement the conclusions of your report).
 
 
-## References
-
-
+## **9. References**
+1. “Pandoc User's Guide.” Pandoc, pandoc.org/MANUAL.html#multiline-tables.
+2. Sonderegger, Derek L. “A Sufficient Introduction to R.” Derek Sonderegger, Ph.D., 3 Oct. 2017, dereksonderegger.github.io/570L/15-rmarkdown-tricks.html.
+3. Yihui Xie, Christophe Dervieux. “R Markdown Cookbook.” 10.1 The Function Knitr::Kable(), 21 Sept. 2020, bookdown.org/yihui/rmarkdown-cookbook/kable.html.
+4. Comprehensive Reference to the Information Available from the General Social Survey (GSS), Government of Canada, Statistics Canada, 20 Feb. 2019, www150.statcan.gc.ca/n1/pub/89f0115x/89f0115x2019001-eng.htm.
+5. General Social Survey C31 MAIN SURVEY- FAMILY, https://www23.statcan.gc.ca/imdb/p3Instr.pl?Function=assembleInstr&lang=en&Item_Id=335815
+6. Gergely Daróczi and Roman Tsegelskyi (2018). pander: An R
+  'Pandoc' Writer. R package version 0.6.3.
+  http://rapporter.github.io/pander 
 
