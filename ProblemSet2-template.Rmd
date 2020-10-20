@@ -1,6 +1,6 @@
 ---
 title: "STA304 Problem Set 2"
-author: "Names of your Group Members"
+author: "Howard Chen, Jackie Yin, Keny Wang"
 date: "October 19, 2020"
 output: pdf_document
 ---
@@ -9,22 +9,22 @@ output: pdf_document
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## Title of your Report
+## A Representation of Meritocracy: Education and Marriage
 
 # Name(s) of Author(s) 
-# Date
+# October 19, 2020
 
 ## **1. Abstract**
 
-Here is where you give a brief (one paragraph overview of your entire paper). This should include some background/introduction, some methodology, results and conclusions.
+In the America, marriage across different education level becomes less and less under Meritocracy. Using the General Social Survey, which explore some characteristics of the modern Canadian family, we investigated whether marriage of partners in a household have the same education. We fitted a logistic regression with features of modern Canadian as predictors and whether his/her partner has the same education as our target. We found that people with a better feeling of life, has a bachelor degree, born outside of Canada, and has a fair mental health has a positive relationship with log odds of having a partner with the same education
 
 ## **2. Introduction**
 
-The General Social Survey - Family 2017 (GSS-Cycle 31) is a sample survey began on February 2nd and completed on November 30th in 2017.  The program aims to capture social trends and provide data on current social issues. The survey mainly explores some characteristics of the modern Canadian family and how diverse they are. It collects a large amount of information for the selected respondents and some data about the family members of the respondents from the ten provinces in Canada. 
-
 ### *Research Inspiration*
 
-The novel “The Meritocracy Trap” by Daniel Markovits crystallizes the problem, phenomenon, 	and representations of the American meritocracy. In the 1960s, the American economy was operated by lands, capital, machines, and manpower. However, in today’s society, the one and only one valuable resource is the brain of the elites, and families become the new “factory” who are responsible to output the most valuable resource in this era. One of the consequences of this phenomena is that marriage across different education levels becomes less and less under meritocracy. Parents in a household who have receive a college education are more likely to provide kids a stabilized family relationship and better education in the long run. In 2010, 25% of the newlyweds both had at least a college diploma. 
+The novel “The Meritocracy Trap” by Daniel Markovits crystallizes the problem, phenomenon, and representations of the American meritocracy. In the 1960s, the American economy was operated by lands, capital, machines, and manpower. However, in today’s society, the one and only one valuable resource is the brain of the elites, and families become the new “factory” who are responsible to output the most valuable resource in this era. One of the consequences of this phenomena is that marriage across different education levels becomes less and less under meritocracy. Parents in a household who have receive a college education are more likely to provide kids a stabilized family relationship and better education in the long run. In 2010, 25% of the newlyweds both had at least a college diploma. 
+
+The General Social Survey - Family 2017 (GSS-Cycle 31) is a sample survey began on February 2nd and completed on November 30th in 2017. The program aims to capture social trends and provide data on current social issues. The survey mainly explores some characteristics of the modern Canadian family and how diverse they are. It collects a large amount of information for the selected respondents and some data about the family members of the respondents from the ten provinces in Canada. The overall response rate was 52.4%. Collecting data through telephone is essential for coverage of the entire population, however, it is harder to reach the households only through phone calls.
 
 ### *Research objective*
 
@@ -32,23 +32,28 @@ Given a wide set of features of the modern Canadian family, we want to investiga
 
 ## **3. Data**
 
+### *Population, Frame, and Sampling approach*
+
 The data is collected through a survey, and its target population, sampling frame and the sampling techniques are explained below. Its target population contains all persons over the age of 15 in Canada, to the exclusion of the residents of the Yukon, Northwest Territories and Nunavut, and full-time institutional residents. The survey frame was created based on the telephone numbers accessible to Statistics Canada obtained from multiple sources, and The Address Register (AR), which is designed for connecting all telephone numbers with the address associated with them. The combination of the two methods is to guarantee that all households are covered with telephone numbers. The households which do not possess telephones are excluded from the survey population. The ten provinces were separated into strata for stratified random sampling. There are 27 strata in total. Every sampling unit was allotted to a stratum.  A simple random sampling without replacement of the sampling units was performed to randomly pick households for interview. A respondent was randomly selected from the selected households. There were 20,602 respondents for the 2017 survey.
+
+### *Quetionnaire*
+
+Addressing general social survey, questionnaire is one of the ways to collect data from every potential target population. Since the online self-completed questionnaire is purposed to indicate some basic personal information and household information, and the other income data are collected through some administrative files, the questions in the questionnaire could be more reliable that reduce the burden and improve accuracy of data. Furthermore, the questionnaire increases initiative while it is an easy way to collect every respondents' data. On the other hand, due to some situations that there could be some respondents not able to complete the questionnaire, the response rate of the questionnaire might never be hundred-percent fulfilled as expected. Equivalently, the result interpreted from the data might not represent the Canadian residents' information accurately, because not all of the target population are included in the dataset. In terms of this questionnaire of general social survey, some questions are ambiguous to answer for some special groups and there are some categories that are not representative of some respondents' situations. According to the overview of the general social survey report in 2017, the questions are not mandatory to respond to, which leads to many NA entries in the data set.
 
 ### *Features and Selected Variables*
 
 The table below lists all selected predictors that are considered affecting the result of this observation. It could be found that the original dataset involves a bunch of categorical variables. Thus, in general, nearly all of those variables are categorical variables indicating specific groups of respondents, except the numerical variable illustrating the age of respondent's first kid. In advance, since 13 variables, out of 81 of those, are chosen to indicate the relationship between our response variable and each of those predictors, the processing of creating a reduced model would be easier and the result might be more accurate than working on a full model. However, it can be a weakness that too many categorical variables restrict the interpretation of data generated from the model, and might not be able to distinguish degrees of response.
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-install.packages("pander")
 library(pander)
 data <- data.frame("VARIABLE NAME" = c("has_same_education", "age_first_child", "total_children", "feelings_life", "place_birth _canada", "province", "education", "hh_type", "partner_birth _province", "average_hours _worked", "self_rated _health", "self_rated _mental_health", "income_family", "income_respondent"),
            "TYPE" = c("categorical", "Numerical", "Categorical", "Categorical", "Categorical", "Categorical", "Categorical", "Categorical", "Categorical", "Categorical", "Categorical", "Categorical", "Categorical", "Categorical"),
            "CHARACTERISTIC" = c("whether the partners have the same education", "Age of the first kid", "Number of children", "Rate of feelings about life", "Originally born in Canada", "Regional location of province", "Education background", "Household type", "Partner's regional birth (province)", "Average weekly work time in hours", "Health level rated by self", "Mental health level rated by self", "Family income level", "Respondent income level" ),
-          "DETAILED CATEGORIES" = c("True, False", "Numeric values among 0 and 60  ", "Integers among 0 and 7  ", "Integers among 0 and 10  ", "Born in Canada, Born outside canada, NA, Don't Know", "Quebec, Manitoca, Ontario, Alberta, Nova Scotia, British Columbia, Saskatchewan, Prince Edward Island, New Brunswick, Newfoundland and Labrador", "High school diploma or a high school equivalency certificate, Trade certificate or diploma, Bachelor's degree (e.g. B.A., B.Sc., LL.B.), College, CEGEP or other non-university certificate or diploma, Less than high school diploma or its equivalent, University certificate or diploma below the bachelor's level, University certificate, diploma or degree above the bachelor, NA", "Low-rise apartment (less than 5 stories), Single detached house, Other, High-rise apartment (5 or more stories), Don't know", "Quebec, Manitoca, Ontario, Alberta, Nova Scotia, British Columbia, Saskatchewan, Prince Edward Island, New Brunswick, Newfoundland and Labrador, Yukon / Northwest Territories / Nunavut", "30.0 to 40.0 hours, 50.1 hours and more, NA, 0.1 to 29.9 hours, Don't know, 40.1 to 50.0 hours, 0 hour", "Excellent, Good, Very good, Poor, Fair, Don't know, NA", "Excellent, Good, Very good, Poor, Fair, Don't know, NA", "$25,000 to $49,999, $75,000 to $99,999, $100,000 to $ 124,999, $50,000 to $74,999, Less than $25,000, $125,000 and more", "$25,000 to $49,999, Less than $25,000, $50,000 to $74,999, $125,000 and more, $75,000 to $99,999, $100,000 to $ 124,999"))
+          "DETAILED CATEGORIES" = c("True, False", "Numeric values among 0 and 60  ", "Integers among 0 and 7  ", "Integers among 0 and 10  ", "Born in Canada, Born outside canada, Don't Know", "Quebec, Manitoca, Ontario, Alberta, Nova Scotia, British Columbia, Saskatchewan, Prince Edward Island, New Brunswick, Newfoundland and Labrador", "High school diploma or a high school equivalency certificate, Trade certificate or diploma, Bachelor's degree (e.g. B.A., B.Sc., LL.B.), College, CEGEP or other non-university certificate or diploma, Less than high school diploma or its equivalent, University certificate or diploma below the bachelor's level, University certificate, diploma or degree above the bachelor", "Low-rise apartment (less than 5 stories), Single detached house, Other, High-rise apartment (5 or more stories), Don't know", "Quebec, Manitoca, Ontario, Alberta, Nova Scotia, British Columbia, Saskatchewan, Prince Edward Island, New Brunswick, Newfoundland and Labrador, Yukon / Northwest Territories / Nunavut", "30.0 to 40.0 hours, 50.1 hours and more, 0.1 to 29.9 hours, Don't know, 40.1 to 50.0 hours, 0 hour", "Excellent, Good, Very good, Poor, Fair, Don't know", "Excellent, Good, Very good, Poor, Fair, Don't know", "$25,000 to $49,999, $75,000 to $99,999, $100,000 to $ 124,999, $50,000 to $74,999, Less than $25,000, $125,000 and more", "$25,000 to $49,999, Less than $25,000, $50,000 to $74,999, $125,000 and more, $75,000 to $99,999, $100,000 to $ 124,999"))
 
 set.alignment('left')
 pander(data, split.table=Inf, split.cells = c(2,1,30,45), style="multiline", caption = "List of Selected Variables and Descriptions")
 ```
-
 
 ### *Data Cleaning*
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
@@ -81,11 +86,21 @@ train_df = final_data[!final_data$caseid %in% test_id, ]
 test_df = final_data[final_data$caseid %in% test_id, ]
 ```
 
-Our final dataset contains 5100 observations and each of them contains characteristics of modern Canadian household. Data is splitted into a training set and a testing set where each of them contains 50% (randomly sampled) of the original data. 
+Our final dataset contains 5100 observations and each of them contains characteristics of modern Canadian household. Data is splitted into a training set and a testing set where each of them contains 50% (randomly sampled) of the original data. Observations that have missing values are removed. 
 
 ## **4. Model**
 
 Logistic regression was chosen to fit the relationship between various Canadian household features and our target: whether or not the partners have the same education level. The model was chosen because the target variable is binary, and the logit link is appropriate for a target variable that follows a binomial distribution.
+
+We used forward stepwise and backward stepwise using both AIC and BIC to perform variable selection. We ensured that our model is simple to interpret and generalizes well to provide good predictions.
+
+Various model assumptions were checked. As the stratified random sampling where simple random sampling without replacement in each strata were used, we assumed that the observations were independent and that the errors are pairwise independent. More model assumptions check are included the the "Results" section.
+
+The final model is validated to ensure that our model has a good fit (likelihood ratio test), provides good predictions (ROC curve and AUC), and generalizes well (performs well on both the training test and the validation set). Influential points were identified through Cook's Distance to assess abservations' influence over the model fit. We removed influential points with reasons. 
+
+The software we used to for the model development is R.
+
+## **5. Results**
 
 ### *Base Model*
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -101,7 +116,7 @@ base_model = glm(hasSameEducation ~ age_first_child+as.factor(total_children)+
 We begin by building a base model that includes all the predictors. There are a lot of insignificant predictors and hence, we intended to perform variable selection to explain the variability with a simpler model. 
 
 ### *Variable Selection*
-```{r, echo=FALSE, warning=FALSE}
+```{r, echo=FALSE, warning=FALSE, results='hide'}
 ## AIC ##
 step(base_model,
      direction = c("forward"), trace = 0, k = 2)
@@ -154,8 +169,7 @@ calculate_roc <- function(model, data){
 }
 ```
 
-```{r, echo=FALSE, message=FALSE, results='hide', warning=FALSE
-}
+```{r, echo=FALSE, message=FALSE, results='hide', warning=FALSE}
 library(epiDisplay)
 lrtest(forward_aic, backward_aic)
 lrtest(backward_bic, backward_aic)
@@ -172,7 +186,7 @@ pander(candidate_comparison, split.table=Inf, split.cells = c(2,1,30,45), style=
 
 We validated our model through its prediction accuracy in the test set. We observed that our model has an AUC value of 0.89, which is close to its AUC value with the training set (0.9). Therefore, our model generalizes well and provides good predictions.
 
-```{r, warning=FALSE, echo=FALSE}
+```{r, warning=FALSE, echo=FALSE, message=FALSE}
 test_model <- glm(formula = hasSameEducation ~ as.factor(feelings_life) + as.factor(place_birth_canada) + as.factor(education) + as.factor(self_rated_mental_health), 
     family = binomial, data = test_df)
 ```
@@ -204,7 +218,15 @@ calculate_roc(updated_model, test_df_removed)
 
 ### *Diagnostics*
 
-In this section, we will verify the model assumptions. 
+In this section, we will verify the model assumptions.
+
+#### *Distribution of response variable*
+
+The target variable is assumed to follow a distribution from an exponential family. Whether or not the partners in a household has the same education is a binary variable, hence it follows a binomial distribtion.
+
+#### *Linearty*
+
+Log odds of the target variable and the predictors are assumed to have a linear relationship. In the binned residual plot, we see that there are no average residuals out of the $\pm2$ SE bands and the average residuals are scattered around the horizontal axis, indicating that the assumption is verified. 
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 library(arm)
@@ -218,28 +240,39 @@ binnedplot(fitted(updated_model),
            col.int = "gray")
 ```
 
-## **5. Results**
-
-```{r, echo=FALSE}
+```{r, echo=FALSE, results='hide'}
 summary(updated_model)
 ```
 
-Here you will include all results. This includes descriptive statistics, graphs, figures, tables, and model results. Please ensure that everything is well formatted and in a report style. You must also provide an explanation of the results in this section. You can overflow to an Appendix if needed. 
-
-Please ensure that everything is well labeled. So if you have multiple histograms and plots, calling them Figure 1, 2, 3, etc. and referencing them as Figure 1, Figure 2, etc. in your report will be expected. The reader should not get lost in a sea of information. Make sure to have the results be clean, well formatted and digestible.
 
 ## **6. Discussion**
 
-Addressing general social survey, questionnaire is one of the ways to collect data from every potential target population. Since the online self-completed questionnaire is purposed to indicate some basic personal information and household information, and the other income data are collected through some administrative files, the questions in the questionnaire could be more reliable that reduce the burden and improve accuracy of data. Furthermore, the questionnaire increases initiative while it is an easy way to collect every respondents' data. On the other hand, due to some situations that there could be some respondents not able to complete the questionnaire, the response rate of the questionnaire might never be hundred-percent fulfilled as expected. Equivalently, the result interpreted from the data might not represent the Canadian residents' information accurately, because not all of the target population are included in the dataset. In terms of this questionnaire of general social survey, some questions are ambiguous to answer for some special groups and there are some categories that are not representative of some respondents' situations. According to the overview of the general social survey report in 2017, the questions are not mandatory to respond to, which leads to many NA entries in the data set.
+### Final Model Interpretation and Importance
+
+```{r}
+kable(coef(summary(updated_model)))
+```
+
+We have developed a logistic regression that is well fitted and provides accurate predictions. Important features of modern Canadian that has an important relationship with whether the partners in a household has the same education are the feeling of life, the birth place of the person, the education level, and the mental health of the person. Coefficients of the predictors explain how exactly the odds of whether the partners in a household has the same education changes with respect to the predictors specifically:
+- Noticed that all the predictors are categorical variables. To interpret to coefficients, they are the log odds of having the same education is the coefficient times the log odds of have the same education with the reference level, holding other predictors constant.
+
+Therefore, by looking at the coefficients, we see that people with a better feeling of life, has a bachelor degree, born outside of Canada, and has a fair mental health has a positive relationship with log odds of having a partner with the same education. 
 
 ## **7. Weaknesses**
 
-Here we discuss weaknesses of the study, data, analysis, etc. You can also discuss areas for improvement.
+### *Data Limitations*
+
+Since the households without telephones are excluded from the target population, the sampling bias may occur. The young and urban Canadians who own cell phones are more likely to be selected in the sample. While those who do not possess a telephone often belong to the low socioeconomic group. Therefore, the sample can be short of this group of the population. Second, the response rate of the telephone interview is more likely to be lower than the personal interview.The category and number of questions for telephone interview can also be limited.
+
+### *Model Limitations*
+
+In stratified sampling, the strata are mutually exclusive, not independent. Hence, theoretically, we can not guarantee that observations are independently distributed, which violates the assumption of a generalized linear model. Another consequence of this is that the errors might not be independent and are not independent of predictors. These results in bias in our model parameter estimations.
+
+We observed that the variable "education" in the model have insignificant levels. We still decided to keep it because not only the variable was kept through variable selection, we were interested in knowing which level of education tend to find partner with a similar level of education.
 
 ## **8. Next Steps**
 
-Here you discuss subsequent work to be done after this report. This can include next steps in terms of statistical analysis (perhaps there is a more efficient algorithm available, or perhaps there is a caveat in the data that would allow for some new technique). Future steps should also be specified in terms of the study setting (eg. including a follow-up survey on something, or a subsequent study that would complement the conclusions of your report).
-
+Logistic regression is the only choice of model for our context. We were more interested in knowing the features of modern Canadian household that has are strongly related to whether or not the partners have the same education level. A well fitted boosting (ex. extreme gradient boosting) and bagging (ex. random forest) classifier generally have a better performance than logistic regression, and the feature important measure of the models is exactly what we want in our context. Fitted the data with the two type of models would be our interest for the next step.
 
 ## **9. References**
 1. “Pandoc User's Guide.” Pandoc, pandoc.org/MANUAL.html#multiline-tables.
