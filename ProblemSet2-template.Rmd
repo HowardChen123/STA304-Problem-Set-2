@@ -249,8 +249,8 @@ summary(updated_model)
 
 ### Final Model Interpretation and Importance
 
-```{r}
-kable(coef(summary(updated_model)))
+```{r, echo=FALSE}
+coef(summary(updated_model))
 ```
 
 We have developed a logistic regression that is well fitted and provides accurate predictions. Important features of modern Canadian that has an important relationship with whether the partners in a household has the same education are the feeling of life, the birth place of the person, the education level, and the mental health of the person. Coefficients of the predictors explain how exactly the odds of whether the partners in a household has the same education changes with respect to the predictors specifically:
