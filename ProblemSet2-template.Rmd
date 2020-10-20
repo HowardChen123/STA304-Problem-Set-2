@@ -38,8 +38,7 @@ The data is collected through a survey, and its target population, sampling fram
 
 ### *Quetionnaire*
 
-Addressing general social survey, questionnaire is one of the ways to collect data from every potential target population. Since the online self-completed questionnaire is purposed to indicate some basic personal information and household information, and the other income data are collected through some administrative files, the questions in the questionnaire could be more reliable that reduce the burden and improve accuracy of data. Furthermore, the questionnaire increases initiative while it is an easy way to collect every respondents' data. On the other hand, due to some situations that there could be some respondents not able to complete the questionnaire, the response rate of the questionnaire might never be hundred-percent fulfilled as expected. Equivalently, the result interpreted from the data might not represent the Canadian residents' information accurately, because not all of the target population are included in the dataset. In terms of this questionnaire of general social survey, some questions are ambiguous to answer for some special groups and there are some categories that are not representative of some respondents' situations. According to the overview of the general social survey report in 2017, the questions are not mandatory to respond to, which leads to many NA entries in the data set.
-
+Addressing the General Social Survey, the questionnaire is delivered through phone calls to each participant. The advantages and drawbacks of this form is discussed below. One benefit of the telephone survey is lower cost and time saving. It is also accessible to the large scale and wide coverage of data. The drawback is that the response rate of the telephone interview is more likely to be lower than the personal interview.The category and number of questions for telephone interview can also be limited. It is less feasible for providing complex and open-ended questions.
 ### *Features and Selected Variables*
 
 The table below lists all selected predictors that are considered affecting the result of this observation. It could be found that the original dataset involves a bunch of categorical variables. Thus, in general, nearly all of those variables are categorical variables indicating specific groups of respondents, except the numerical variable illustrating the age of respondent's first kid. In advance, since 13 variables, out of 81 of those, are chosen to indicate the relationship between our response variable and each of those predictors, the processing of creating a reduced model would be easier and the result might be more accurate than working on a full model. However, it can be a weakness that too many categorical variables restrict the interpretation of data generated from the model, and might not be able to distinguish degrees of response.
@@ -250,7 +249,10 @@ summary(updated_model)
 ### Final Model Interpretation and Importance
 
 ```{r, echo=FALSE}
-coef(summary(updated_model))
+coef <- coef(summary(updated_model))
+data <- data.frame(coef)
+pander(data, style="multiline", caption = "The coefficients of the summary table")
+
 ```
 
 We have developed a logistic regression that is well fitted and provides accurate predictions. Important features of modern Canadian that has an important relationship with whether the partners in a household has the same education are the feeling of life, the birth place of the person, the education level, and the mental health of the person. Coefficients of the predictors explain how exactly the odds of whether the partners in a household has the same education changes with respect to the predictors specifically:
@@ -262,7 +264,7 @@ Therefore, by looking at the coefficients, we see that people with a better feel
 
 ### *Data Limitations*
 
-Since the households without telephones are excluded from the target population, the sampling bias may occur. The young and urban Canadians who own cell phones are more likely to be selected in the sample. While those who do not possess a telephone often belong to the low socioeconomic group. Therefore, the sample can be short of this group of the population. Second, the response rate of the telephone interview is more likely to be lower than the personal interview.The category and number of questions for telephone interview can also be limited.
+Since the households without telephones are excluded from the target population, the sampling bias may occur. The young and urban Canadians who own cell phones are more likely to be selected in the sample. While those who do not possess a telephone often belong to the low socioeconomic group. Therefore, the sample can be short of this group of the population. 
 
 ### *Model Limitations*
 
